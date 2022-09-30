@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework</title>
+    <link rel="stylesheet" href="./index.css">
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.24/"></script>
+</head>
+
+<body>
+    <div id="viewDiv"></div>
+
+    <div class="list-container">
+        <div class="list-container-inner"></div>
+    </div>
+
+    <script src="./index.js"></script>
+
+    <script>
+        require([
+            "esri/config",
+            "esri/Map",
+            "esri/views/MapView",
+
+            "esri/layers/FeatureLayer",
+
+            "esri/core/reactiveUtils",
+
+        ], requireArcGISCallback);
+    </script>
+</body>
+
+</html>
