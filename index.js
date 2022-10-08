@@ -7,12 +7,13 @@ const DEFAULT_PADDING_BOTTOM = 10; // default padding bottom of inner container
 const PADDING_UNIT = ITEM_HEIGHT * BATCH_NUM; // padding of a batch
 
 // query features with pagination, return features infomation(includes attributes and geometry) array
-async function queryFeatures(layerView, page) {
+async function queryFeatures(view, layerView, page) {
     const query = {
         start: page,
         num: 10,
         outFields: ["*"],
         returnGeometry: true,
+        geometry: view.extent,
         // orderByFields: ["objectid"]
     };
     return await layerView.queryFeatures(query).then((featureSet) => {
@@ -131,7 +132,7 @@ function requireArcGISCallback(esriConfig, Map, MapView, FeatureLayer) {
     // concat features info
     const getCitiesInfos = () => {
         inRequest = true;
-        return queryFeatures(citiesLayerview, page++).then((featureInfos) => {
+        return queryFeatures(view, citiesLayerview, page++).then((featureInfos) => {
             inRequest = false;
             citiesInfos = [...citiesInfos, ...featureInfos];
         });
@@ -147,6 +148,8 @@ function requireArcGISCallback(esriConfig, Map, MapView, FeatureLayer) {
     citiesLayer.when(() => {
         view.goTo(citiesLayer.fullExtent);
     });
+
+    let viewExtent;
  
     view.whenLayerView(citiesLayer).then((layerView) => {
         citiesLayerview = layerView;
@@ -154,6 +157,17 @@ function requireArcGISCallback(esriConfig, Map, MapView, FeatureLayer) {
           if(!val){  // wait for the layer view to finish updating
             if (!citiesInfos.length) {
                 // query the first 10 items
+                changeInnerHTMLDirectly();
+                viewExtent =  view.extent;
+                return;
+            }
+
+            // if view extent updated, get the cities info start from page 0
+            if (view.extent !== viewExtent) {
+                viewExtent = view.extent;
+
+                page = 0;
+                citiesInfos = [];
                 changeInnerHTMLDirectly();
             }
           }
@@ -180,23 +194,6 @@ function requireArcGISCallback(esriConfig, Map, MapView, FeatureLayer) {
                 }
                 // hightlight feature
                 highlightSelect = citiesLayerview.highlight(objectId);
-
-                // fit map according to feature highlighted above
-                view.goTo(
-                    {
-                      target: featureInfo.geometry,
-                      zoom: 6
-                    },
-                    {
-                      duration: 1000,
-                      easing: "in-out-expo"
-                    }
-                )
-                .catch((error) => {
-                    if (error.name != "AbortError") {
-                        console.error('go to view error:', error);
-                    }
-                });
             }
         }
     })
